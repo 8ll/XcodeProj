@@ -57,7 +57,11 @@ import PathKit
 import XcodeProj
 
 let path = Path("/path/to/my/Project.xcodeproj") // Your project path
-let xcodeproj = XcodeProj(path: path)
+do {
+    let xcodeproj = try XcodeProj(path: path)
+} catch {
+    print(error)
+}
 ```
 
 xcodeproj will parse and map the project structure into Swift classes that you can interact with.
@@ -68,7 +72,7 @@ We the project already in memory, we are going to output all the targets that ar
 
 ```swift
 let pbxproj = xcodeproj.pbxproj // Returns a PBXProj
-pbxproj.nativeTargets.each { target in
+pbxproj.nativeTargets.forEach { target in
   print(target.name)
 }
 ```

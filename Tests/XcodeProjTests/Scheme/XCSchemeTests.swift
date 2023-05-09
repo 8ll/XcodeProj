@@ -16,6 +16,39 @@ final class XCSchemeIntegrationTests: XCTestCase {
                   assertion: { assert(scheme: $1) })
     }
 
+    func test_read_write_produces_no_diff() throws {
+        try testReadWriteProducesNoDiff(from: iosSchemePath,
+                                        initModel: XCScheme.init(path:))
+    }
+
+    func test_read_runnableWithoutBuildableReferenceScheme() {
+        let subject = try? XCScheme(path: runnableWithoutBuildableReferenceSchemePath)
+
+        XCTAssertNotNil(subject)
+        if let subject = subject {
+            assert(runnableWithoutBuildableReferenceScheme: subject)
+        }
+    }
+
+    func test_remoteRunnable_runnableWithoutBuildableReferenceScheme() throws {
+        // Given / When
+        let subject = try XCScheme(path: runnableWithoutBuildableReferenceSchemePath)
+
+        // Then
+        let launchAction = try XCTUnwrap(subject.launchAction)
+        let remoteRunnable = try XCTUnwrap(launchAction.runnable as? XCScheme.RemoteRunnable)
+        XCTAssertEqual(remoteRunnable.bundleIdentifier, "me.ava.Ava-Staging")
+        XCTAssertEqual(remoteRunnable.runnableDebuggingMode, "1")
+        XCTAssertEqual(remoteRunnable.remotePath, "/var/containers/Bundle/Application/018F0933-05E8-4359-9955-39E0523C4246/Ava.app")
+    }
+
+    func test_write_runnableWithoutBuildableReferenceScheme() {
+        testWrite(from: runnableWithoutBuildableReferenceSchemePath,
+                  initModel: { try? XCScheme(path: $0) },
+                  modify: { $0 },
+                  assertion: { assert(runnableWithoutBuildableReferenceScheme: $1) })
+    }
+
     func test_read_minimalScheme() {
         let subject = try? XCScheme(path: minimalSchemePath)
 
@@ -245,6 +278,41 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertNotEqual(runnableA1, remoteRunnableA1)
     }
 
+    func test_schemeWithoutBlueprintIdentifier_canBeCreated() {
+        let subject = try? XCScheme(path: noBlueprintIDPath)
+        XCTAssertNotNil(subject)
+    }
+
+    func test_schemeWithoutBlueprintIdentifier_serializesWithoutBlueprintIdentifier() throws {
+        let subject = try XCScheme(path: noBlueprintIDPath)
+        let buildable = try XCTUnwrap(subject.buildAction?.buildActionEntries.first?.buildableReference)
+        let buildableXML = buildable.xmlElement()
+        XCTAssertNotNil(buildableXML.attributes["BlueprintName"])
+        XCTAssertNil(buildableXML.attributes["BlueprintIdentifier"])
+    }
+
+    func test_buildAction_runPostActionsOnFailure() throws {
+        // Given / When
+        let subject = try XCScheme(path: runPostActionsOnFailureSchemePath)
+
+        // Then
+        let buildAction = try XCTUnwrap(subject.buildAction)
+        XCTAssertTrue(buildAction.runPostActionsOnFailure == true)
+    }
+
+    func test_buildAction_runPostActionsOnFailure_serializingAndDeserializing() throws {
+        // Given
+        let scheme = try XCScheme(path: runPostActionsOnFailureSchemePath)
+        let subject = try XCTUnwrap(scheme.buildAction)
+
+        // When
+        let xml = subject.xmlElement()
+        let reconstructedSubject = try XCScheme.BuildAction(element: xml)
+
+        // Then
+        XCTAssertEqual(reconstructedSubject, subject)
+    }
+
     // MARK: - Private
 
     private func assert(scheme: XCScheme) {
@@ -253,6 +321,7 @@ final class XCSchemeIntegrationTests: XCTestCase {
         // Build action
         XCTAssertTrue(scheme.buildAction?.parallelizeBuild == true)
         XCTAssertTrue(scheme.buildAction?.buildImplicitDependencies == true)
+        XCTAssertNil(scheme.buildAction?.runPostActionsOnFailure)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.testing) == true)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.running) == true)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.profiling) == true)
@@ -265,8 +334,10 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.buildAction?.buildActionEntries.first?.buildableReference.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(scheme.buildAction?.preActions.first?.title, "Build Pre-action")
         XCTAssertEqual(scheme.buildAction?.preActions.first?.scriptText, "echo prebuild")
+        XCTAssertNil(scheme.buildAction?.preActions.first?.shellToInvoke)
         XCTAssertEqual(scheme.buildAction?.postActions.first?.title, "Build Post-action")
         XCTAssertEqual(scheme.buildAction?.postActions.first?.scriptText, "echo postbuild")
+        XCTAssertEqual(scheme.buildAction?.postActions.first?.shellToInvoke, "/bin/sh")
         // Test action
         XCTAssertEqual(scheme.testAction?.buildConfiguration, "Debug")
         XCTAssertEqual(scheme.testAction?.selectedDebuggerIdentifier, "Xcode.DebuggerFoundation.Debugger.LLDB")
@@ -332,15 +403,16 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.profileAction?.buildConfiguration, "Release")
         XCTAssertEqual(scheme.profileAction?.shouldUseLaunchSchemeArgsEnv, true)
         XCTAssertEqual(scheme.profileAction?.savedToolIdentifier, "")
+        XCTAssertNil(scheme.profileAction?.customWorkingDirectory)
         XCTAssertEqual(scheme.profileAction?.useCustomWorkingDirectory, false)
         XCTAssertEqual(scheme.profileAction?.debugDocumentVersioning, true)
         XCTAssertNil(scheme.profileAction?.askForAppToLaunch)
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.runnableDebuggingMode, "0")
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.buildableReference.buildableIdentifier, "primary")
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.buildableReference.blueprintIdentifier, "23766C111EAA3484007A9026")
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.buildableReference.buildableName, "iOS.app")
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.buildableReference.blueprintName, "iOS")
-        XCTAssertEqual(scheme.profileAction?.buildableProductRunnable?.buildableReference.referencedContainer, "container:Project.xcodeproj")
+        XCTAssertEqual(scheme.profileAction?.runnable?.runnableDebuggingMode, "0")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.blueprintIdentifier, "23766C111EAA3484007A9026")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.buildableName, "iOS.app")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.blueprintName, "iOS")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(scheme.profileAction?.preActions.isEmpty, true)
         XCTAssertEqual(scheme.profileAction?.postActions.first?.title, "Run Script")
         XCTAssertEqual(scheme.profileAction?.postActions.first?.scriptText, "echo analysis done")
@@ -362,17 +434,18 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.launchAction?.selectedLauncherIdentifier, "Xcode.DebuggerFoundation.Launcher.LLDB")
         XCTAssertEqual(scheme.launchAction?.launchStyle, .custom)
         XCTAssertNil(scheme.launchAction?.askForAppToLaunch)
+        XCTAssertNil(scheme.launchAction?.customWorkingDirectory)
         XCTAssertEqual(scheme.launchAction?.useCustomWorkingDirectory, false)
         XCTAssertEqual(scheme.launchAction?.ignoresPersistentStateOnLaunch, false)
         XCTAssertEqual(scheme.launchAction?.debugDocumentVersioning, true)
         XCTAssertEqual(scheme.launchAction?.debugServiceExtension, "internal")
         XCTAssertEqual(scheme.launchAction?.allowLocationSimulation, true)
         XCTAssertEqual(scheme.launchAction?.runnable?.runnableDebuggingMode, "0")
-        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference.buildableIdentifier, "primary")
-        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference.blueprintIdentifier, "23766C111EAA3484007A9026")
-        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference.buildableName, "iOS.app")
-        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference.blueprintName, "iOS")
-        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference.referencedContainer, "container:Project.xcodeproj")
+        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference?.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference?.blueprintIdentifier, "23766C111EAA3484007A9026")
+        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference?.buildableName, "iOS.app")
+        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference?.blueprintName, "iOS")
+        XCTAssertEqual(scheme.launchAction?.runnable?.buildableReference?.referencedContainer, "container:Project.xcodeproj")
         XCTAssertEqual(scheme.launchAction?.locationScenarioReference?.identifier, "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier")
         XCTAssertEqual(scheme.launchAction?.locationScenarioReference?.referenceType, "1")
         XCTAssertEqual(scheme.launchAction?.preActions.first?.title, "")
@@ -396,6 +469,7 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.launchAction?.enableUBSanitizer, false)
         XCTAssertEqual(scheme.launchAction?.stopOnEveryUBSanitizerIssue, false)
         XCTAssertEqual(scheme.launchAction?.disableMainThreadChecker, false)
+        XCTAssertEqual(scheme.launchAction?.disablePerformanceAntipatternChecker, false)
         XCTAssertEqual(scheme.launchAction?.stopOnEveryMainThreadCheckerIssue, false)
         XCTAssertEqual(scheme.launchAction?.additionalOptions.isEmpty, true)
 
@@ -412,6 +486,113 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertNil(scheme.launchAction?.customLLDBInitFile)
     }
 
+    private func assert(runnableWithoutBuildableReferenceScheme scheme: XCScheme) {
+        XCTAssertEqual(scheme.version, "2.0")
+        XCTAssertEqual(scheme.lastUpgradeVersion, "1230", "\(scheme.lastUpgradeVersion!) not equals 1230")
+
+        // Build action
+        XCTAssertTrue(scheme.buildAction?.parallelizeBuild == true)
+        XCTAssertTrue(scheme.buildAction?.buildImplicitDependencies == true)
+        XCTAssertNil(scheme.buildAction?.runPostActionsOnFailure)
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries.count, 2)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[0].buildFor.contains(.testing) == true)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[0].buildFor.contains(.running) == true)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[0].buildFor.contains(.profiling) == true)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[0].buildFor.contains(.archiving) == true)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[0].buildFor.contains(.analyzing) == true)
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[0].buildableReference.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[0].buildableReference.blueprintIdentifier, "FE7C11D21B6DB70D0041DF02")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[0].buildableReference.buildableName, "Ava.app")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[0].buildableReference.blueprintName, "core-ava")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[0].buildableReference.referencedContainer, "container:core-ava.xcodeproj")
+
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[1].buildFor.contains(.testing) == true)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[1].buildFor.contains(.running) == false)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[1].buildFor.contains(.profiling) == false)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[1].buildFor.contains(.archiving) == false)
+        XCTAssertTrue(scheme.buildAction?.buildActionEntries[1].buildFor.contains(.analyzing) == false)
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[1].buildableReference.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[1].buildableReference.blueprintIdentifier, "9942115E25C4D3B7000711CE")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[1].buildableReference.buildableName, "AvaTests.xctest")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[1].buildableReference.blueprintName, "AvaTests")
+        XCTAssertEqual(scheme.buildAction?.buildActionEntries[1].buildableReference.referencedContainer, "container:core-ava.xcodeproj")
+
+        // Test action
+        XCTAssertEqual(scheme.testAction?.buildConfiguration, "Debug")
+        XCTAssertEqual(scheme.testAction?.selectedDebuggerIdentifier, "Xcode.DebuggerFoundation.Debugger.LLDB")
+        XCTAssertEqual(scheme.testAction?.selectedLauncherIdentifier, "Xcode.DebuggerFoundation.Launcher.LLDB")
+        XCTAssertTrue(scheme.testAction?.shouldUseLaunchSchemeArgsEnv == true)
+        XCTAssertTrue(scheme.testAction?.codeCoverageEnabled == false)
+        XCTAssertEqual(scheme.testAction?.onlyGenerateCoverageForSpecifiedTargets, nil)
+        XCTAssertNil(scheme.testAction?.macroExpansion)
+        XCTAssertEqual(scheme.testAction?.enableAddressSanitizer, false)
+        XCTAssertEqual(scheme.testAction?.enableASanStackUseAfterReturn, false)
+        XCTAssertEqual(scheme.testAction?.enableThreadSanitizer, false)
+        XCTAssertEqual(scheme.testAction?.enableUBSanitizer, false)
+        XCTAssertEqual(scheme.testAction?.disableMainThreadChecker, false)
+        XCTAssertEqual(scheme.testAction?.additionalOptions.isEmpty, true)
+        XCTAssertNil(scheme.testAction?.commandlineArguments)
+        XCTAssertNil(scheme.testAction?.environmentVariables)
+
+        // Launch action
+        XCTAssertEqual(scheme.launchAction?.selectedDebuggerIdentifier, XCScheme.defaultDebugger)
+        XCTAssertEqual(scheme.launchAction?.selectedLauncherIdentifier, XCScheme.defaultLauncher)
+        XCTAssertEqual(scheme.launchAction?.buildConfiguration, "Staging")
+        XCTAssertEqual(scheme.launchAction?.launchStyle, XCScheme.LaunchAction.Style.auto)
+        XCTAssertTrue(scheme.launchAction?.askForAppToLaunch == true)
+        XCTAssertEqual(scheme.launchAction?.customWorkingDirectory, "/customWorkingDirectory")
+        XCTAssertTrue(scheme.launchAction?.useCustomWorkingDirectory == false)
+        XCTAssertTrue(scheme.launchAction?.ignoresPersistentStateOnLaunch == false)
+        XCTAssertTrue(scheme.launchAction?.debugDocumentVersioning == true)
+        XCTAssertEqual(scheme.launchAction?.debugServiceExtension, XCScheme.LaunchAction.defaultDebugServiceExtension)
+        XCTAssertTrue(scheme.launchAction?.allowLocationSimulation == true)
+        XCTAssertNil(scheme.launchAction?.locationScenarioReference)
+        XCTAssertNil(scheme.launchAction?.commandlineArguments)
+        XCTAssertEqual(scheme.launchAction?.enableAddressSanitizer, false)
+        XCTAssertEqual(scheme.launchAction?.enableASanStackUseAfterReturn, false)
+        XCTAssertEqual(scheme.launchAction?.enableThreadSanitizer, false)
+        XCTAssertEqual(scheme.launchAction?.stopOnEveryThreadSanitizerIssue, false)
+        XCTAssertEqual(scheme.launchAction?.enableUBSanitizer, false)
+        XCTAssertEqual(scheme.launchAction?.stopOnEveryUBSanitizerIssue, false)
+        XCTAssertEqual(scheme.launchAction?.disableMainThreadChecker, false)
+        XCTAssertEqual(scheme.launchAction?.disablePerformanceAntipatternChecker, false)
+        XCTAssertEqual(scheme.launchAction?.stopOnEveryMainThreadCheckerIssue, false)
+        XCTAssertEqual(scheme.launchAction?.additionalOptions.isEmpty, true)
+        XCTAssertNil(scheme.launchAction?.storeKitConfigurationFileReference)
+        XCTAssertEqual(scheme.launchAction?.macroExpansion?.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.launchAction?.macroExpansion?.blueprintIdentifier, "FE7C11D21B6DB70D0041DF02")
+        XCTAssertEqual(scheme.launchAction?.macroExpansion?.buildableName, "Ava.app")
+        XCTAssertEqual(scheme.launchAction?.macroExpansion?.blueprintName, "core-ava")
+        XCTAssertEqual(scheme.launchAction?.macroExpansion?.referencedContainer, "container:core-ava.xcodeproj")
+        XCTAssertNil(scheme.launchAction?.environmentVariables)
+
+        // Profile action
+        XCTAssertEqual(scheme.profileAction?.runnable?.runnableDebuggingMode, "0")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.blueprintIdentifier, "FE7C11D21B6DB70D0041DF02")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.buildableIdentifier, "primary")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.blueprintName, "core-ava")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.buildableName, "Ava.app")
+        XCTAssertEqual(scheme.profileAction?.runnable?.buildableReference?.referencedContainer, "container:core-ava.xcodeproj")
+        XCTAssertEqual(scheme.profileAction?.buildConfiguration, "Release")
+        XCTAssertTrue(scheme.profileAction?.shouldUseLaunchSchemeArgsEnv == true)
+        XCTAssertEqual(scheme.profileAction?.savedToolIdentifier, "")
+        XCTAssertNil(scheme.profileAction?.customWorkingDirectory)
+        XCTAssertTrue(scheme.profileAction?.useCustomWorkingDirectory == false)
+        XCTAssertTrue(scheme.profileAction?.debugDocumentVersioning == true)
+        XCTAssertTrue(scheme.profileAction?.askForAppToLaunch == true)
+        XCTAssertNil(scheme.profileAction?.commandlineArguments)
+        XCTAssertNil(scheme.profileAction?.environmentVariables)
+        XCTAssertEqual(scheme.profileAction?.launchAutomaticallySubstyle, "2")
+
+        // Analyze action
+        XCTAssertEqual(scheme.analyzeAction?.buildConfiguration, "Debug")
+
+        // Archive action
+        XCTAssertEqual(scheme.archiveAction?.buildConfiguration, "Release")
+        XCTAssertTrue(scheme.archiveAction?.revealArchiveInOrganizer == true)
+        XCTAssertNil(scheme.archiveAction?.customArchiveName)
+    }
+
     private func assert(minimalScheme scheme: XCScheme) {
         XCTAssertEqual(scheme.version, "1.3")
         XCTAssertNil(scheme.lastUpgradeVersion)
@@ -419,6 +600,7 @@ final class XCSchemeIntegrationTests: XCTestCase {
         // Build action
         XCTAssertTrue(scheme.buildAction?.parallelizeBuild == true)
         XCTAssertTrue(scheme.buildAction?.buildImplicitDependencies == true)
+        XCTAssertNil(scheme.buildAction?.runPostActionsOnFailure)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.testing) == true)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.running) == false)
         XCTAssertTrue(scheme.buildAction?.buildActionEntries.first?.buildFor.contains(.profiling) == true)
@@ -454,6 +636,7 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.launchAction?.buildConfiguration, "Debug")
         XCTAssertEqual(scheme.launchAction?.launchStyle, XCScheme.LaunchAction.Style.auto)
         XCTAssertNil(scheme.launchAction?.askForAppToLaunch)
+        XCTAssertNil(scheme.launchAction?.customWorkingDirectory)
         XCTAssertTrue(scheme.launchAction?.useCustomWorkingDirectory == false)
         XCTAssertTrue(scheme.launchAction?.ignoresPersistentStateOnLaunch == false)
         XCTAssertTrue(scheme.launchAction?.debugDocumentVersioning == true)
@@ -468,6 +651,7 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertEqual(scheme.launchAction?.enableUBSanitizer, false)
         XCTAssertEqual(scheme.launchAction?.stopOnEveryUBSanitizerIssue, false)
         XCTAssertEqual(scheme.launchAction?.disableMainThreadChecker, false)
+        XCTAssertEqual(scheme.launchAction?.disablePerformanceAntipatternChecker, false)
         XCTAssertEqual(scheme.launchAction?.stopOnEveryMainThreadCheckerIssue, false)
         XCTAssertEqual(scheme.launchAction?.additionalOptions.isEmpty, true)
         XCTAssertNil(scheme.launchAction?.storeKitConfigurationFileReference)
@@ -479,10 +663,11 @@ final class XCSchemeIntegrationTests: XCTestCase {
         XCTAssertTrue(launchEnvironmentVariables[0].enabled)
 
         // Profile action
-        XCTAssertNil(scheme.profileAction?.buildableProductRunnable)
+        XCTAssertNil(scheme.profileAction?.runnable)
         XCTAssertEqual(scheme.profileAction?.buildConfiguration, "Release")
         XCTAssertTrue(scheme.profileAction?.shouldUseLaunchSchemeArgsEnv == true)
         XCTAssertEqual(scheme.profileAction?.savedToolIdentifier, "")
+        XCTAssertNil(scheme.profileAction?.customWorkingDirectory)
         XCTAssertTrue(scheme.profileAction?.useCustomWorkingDirectory == false)
         XCTAssertTrue(scheme.profileAction?.debugDocumentVersioning == true)
         XCTAssertNil(scheme.profileAction?.askForAppToLaunch)
@@ -521,7 +706,21 @@ final class XCSchemeIntegrationTests: XCTestCase {
         fixturesPath() + "Schemes/MinimalInformation.xcscheme"
     }
 
+    private var runnableWithoutBuildableReferenceSchemePath: Path {
+        fixturesPath() + "Schemes/RunnableWithoutBuildableReference.xcscheme"
+    }
+
+    /// Path to a scheme with a buildable reference that contains no blueprint identifier
+    private var noBlueprintIDPath: Path {
+        fixturesPath() + "Schemes/NoBlueprintID.xcscheme"
+    }
+
     private var watchAppSchemePath: Path {
         fixturesPath() + "iOS/AppWithExtensions/AppWithExtensions.xcodeproj/xcshareddata/xcschemes/WatchApp.xcscheme"
+    }
+
+    private var runPostActionsOnFailureSchemePath: Path {
+        // A scheme with the `runPostActionsOnFailure` enabled
+        fixturesPath() + "Schemes/RunPostActionsOnFailure.xcscheme"
     }
 }

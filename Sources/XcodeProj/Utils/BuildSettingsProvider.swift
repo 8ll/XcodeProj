@@ -29,8 +29,10 @@ public class BuildSettingsProvider {
     /// - dynamicLibrary: dynamic library.
     /// - application: application.
     /// - bundle: bundle.
-    /// - appExtension: application extension
-    /// - watchExtension: watch extension
+    /// - appExtension: application extension.
+    /// - watchExtension: watch extension.
+    /// - unitTests: unit tests.
+    /// - uiTests: ui tests.
     public enum Product {
         case framework, staticLibrary, dynamicLibrary, application, bundle, appExtension, watchExtension, unitTests, uiTests
     }
@@ -79,6 +81,7 @@ public class BuildSettingsProvider {
 
     /// Returns default build settings that Xcode sets in new projects.
     ///
+    /// - Parameters variant: build settings variant.
     /// - Returns: build settings.
     public static func projectDefault(variant: Variant) -> BuildSettings {
         switch variant {
@@ -97,6 +100,7 @@ public class BuildSettingsProvider {
     private static func projectAll() -> BuildSettings {
         [
             "ALWAYS_SEARCH_USER_PATHS": "NO",
+            "CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED": "YES",
             "CLANG_ANALYZER_NONNULL": "YES",
             "CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION": "YES_AGGRESSIVE",
             "CLANG_CXX_LANGUAGE_STANDARD": "gnu++14",
@@ -120,12 +124,14 @@ public class BuildSettingsProvider {
             "CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF": "YES",
             "CLANG_WARN_OBJC_LITERAL_CONVERSION": "YES",
             "CLANG_WARN_OBJC_ROOT_CLASS": "YES_ERROR",
+            "CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER": "YES",
             "CLANG_WARN_RANGE_LOOP_ANALYSIS": "YES",
             "CLANG_WARN_STRICT_PROTOTYPES": "YES",
             "CLANG_WARN_SUSPICIOUS_MOVE": "YES",
             "CLANG_WARN_UNGUARDED_AVAILABILITY": "YES_AGGRESSIVE",
             "CLANG_WARN_UNREACHABLE_CODE": "YES",
             "COPY_PHASE_STRIP": "NO",
+            "DEAD_CODE_STRIPPING": "YES",
             "ENABLE_STRICT_OBJC_MSGSEND": "YES",
             "GCC_C_LANGUAGE_STANDARD": "gnu11",
             "GCC_NO_COMMON_BLOCKS": "YES",
@@ -238,6 +244,7 @@ public class BuildSettingsProvider {
         case (.watchOS, .application):
             return [
                 "SKIP_INSTALL": "YES",
+                "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks"],
             ]
         case (.iOS, .framework):
             return [

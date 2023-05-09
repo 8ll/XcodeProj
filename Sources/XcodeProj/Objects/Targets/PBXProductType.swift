@@ -12,6 +12,7 @@ public enum PBXProductType: String, Decodable {
     case unitTestBundle = "com.apple.product-type.bundle.unit-test"
     case uiTestBundle = "com.apple.product-type.bundle.ui-testing"
     case appExtension = "com.apple.product-type.app-extension"
+    case extensionKitExtension = "com.apple.product-type.extensionkit-extension"
     case commandLineTool = "com.apple.product-type.tool"
     case watchApp = "com.apple.product-type.application.watchapp"
     case watch2App = "com.apple.product-type.application.watchapp2"
@@ -29,6 +30,8 @@ public enum PBXProductType: String, Decodable {
     case intentsServiceExtension = "com.apple.product-type.app-extension.intents-service"
     case onDemandInstallCapableApplication = "com.apple.product-type.application.on-demand-install-capable"
     case metalLibrary = "com.apple.product-type.metal-library"
+    case driverExtension = "com.apple.product-type.driver-extension"
+    case systemExtension = "com.apple.product-type.system-extension"
 
     /// Returns the file extension for the given product type.
     public var fileExtension: String? {
@@ -45,7 +48,8 @@ public enum PBXProductType: String, Decodable {
             return "bundle"
         case .unitTestBundle, .uiTestBundle:
             return "xctest"
-        case .appExtension, .tvExtension, .watchExtension, .watch2Extension, .messagesExtension, .stickerPack, .xcodeExtension, .intentsServiceExtension:
+        case .appExtension, .extensionKitExtension, .tvExtension, .watchExtension, .watch2Extension, .messagesExtension, .stickerPack, .xcodeExtension,
+                .intentsServiceExtension:
             return "appex"
         case .commandLineTool:
             return nil
@@ -59,6 +63,10 @@ public enum PBXProductType: String, Decodable {
             return "xcframework"
         case .metalLibrary:
             return "metallib"
+        case .systemExtension:
+            return "systemextension"
+        case .driverExtension:
+            return "dext"
         case .none:
             return nil
         }

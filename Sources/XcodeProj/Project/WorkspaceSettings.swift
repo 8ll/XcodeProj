@@ -16,8 +16,25 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
         case new
     }
 
+    public enum DerivedDataLocationStyle: String {
+        /// Default derived data
+        case `default` = "Default"
+
+        /// Absolute path
+        case absolutePath = "AbsolutePath"
+
+        /// Relative paht
+        case workspaceRelativePath = "WorkspaceRelativePath"
+    }
+
     /// Workspace build system.
     public var buildSystem: BuildSystem
+
+    /// Workspace DerivedData directory.
+    public var derivedDataLocationStyle: DerivedDataLocationStyle?
+
+    /// Path to workspace DerivedData directory.
+    public var derivedDataCustomLocation: String?
 
     /// When true, Xcode auto-creates schemes in the project.
     public var autoCreateSchemes: Bool?
@@ -27,6 +44,8 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
     /// - buildSystem: Build system.
     enum CodingKeys: String, CodingKey {
         case buildSystem = "BuildSystemType"
+        case derivedDataLocationStyle = "DerivedDataLocationStyle"
+        case derivedDataCustomLocation = "DerivedDataCustomLocation"
         case autoCreateSchemes = "IDEWorkspaceSharedSettings_AutocreateContextsIfNeeded"
     }
 
@@ -34,25 +53,41 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
     ///
     /// - Parameters:
     ///   - buildSystem: Workspace build system.
+    ///   - derivedDataLocationStyle: Workspace DerivedData directory.
+    ///   - derivedDataCustomLocation: Path to workspace DerivedData directory.
     ///   - autoCreateSchemes: When true, Xcode auto-creates schemes in the project.
-    init(buildSystem: BuildSystem = .new,
-         autoCreateSchemes: Bool? = nil) {
+    public init(buildSystem: BuildSystem = .new,
+                derivedDataLocationStyle: DerivedDataLocationStyle? = nil,
+                derivedDataCustomLocation: String? = nil,
+                autoCreateSchemes: Bool? = nil)
+    {
         self.buildSystem = buildSystem
+        self.derivedDataLocationStyle = derivedDataLocationStyle
+        self.derivedDataCustomLocation = derivedDataCustomLocation
         self.autoCreateSchemes = autoCreateSchemes
     }
 
     /// Initializes the settings decoding the values from the plist representation.
     ///
-    /// - Parameter decoder: Propertly list decoder.
+    /// - Parameter decoder: Property list decoder.
     /// - Throws: An error if required attributes are missing or have a wrong type.
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         if let buildSystemString: String = try container.decodeIfPresent(.buildSystem),
-            let buildSystem = BuildSystem(rawValue: buildSystemString) {
+           let buildSystem = BuildSystem(rawValue: buildSystemString)
+        {
             self.buildSystem = buildSystem
         } else {
             buildSystem = .new
         }
+        if let derivedDataLocationStyleString: String = try container.decodeIfPresent(.derivedDataLocationStyle),
+           let derivedDataLocationStyle = DerivedDataLocationStyle(rawValue: derivedDataLocationStyleString)
+        {
+            self.derivedDataLocationStyle = derivedDataLocationStyle
+        } else {
+            derivedDataLocationStyle = .default
+        }
+        derivedDataCustomLocation = try container.decodeIfPresent(.derivedDataCustomLocation)
         autoCreateSchemes = try container.decodeIfPresent(.autoCreateSchemes)
     }
 
@@ -64,6 +99,12 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         if buildSystem == .original {
             try container.encode(buildSystem.rawValue, forKey: .buildSystem)
+        }
+        if let derivedDataLocationStyle = derivedDataLocationStyle {
+            try container.encode(derivedDataLocationStyle.rawValue, forKey: .derivedDataLocationStyle)
+        }
+        if let derivedDataCustomLocation = derivedDataCustomLocation {
+            try container.encode(derivedDataCustomLocation, forKey: .derivedDataCustomLocation)
         }
         if let autoCreateSchemes = autoCreateSchemes {
             try container.encode(autoCreateSchemes, forKey: .autoCreateSchemes)
@@ -92,7 +133,9 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
     /// - Returns: True if the two instances are the same.
     public static func == (lhs: WorkspaceSettings, rhs: WorkspaceSettings) -> Bool {
         lhs.buildSystem == rhs.buildSystem &&
-            lhs.autoCreateSchemes == rhs.autoCreateSchemes
+            lhs.autoCreateSchemes == rhs.autoCreateSchemes &&
+            lhs.derivedDataLocationStyle == rhs.derivedDataLocationStyle &&
+            lhs.derivedDataCustomLocation == rhs.derivedDataCustomLocation
     }
 
     /// Writes the workspace settings.
@@ -102,10 +145,17 @@ public class WorkspaceSettings: Codable, Equatable, Writable {
     /// - Throws: writing error if something goes wrong.
     public func write(path: Path, override: Bool) throws {
         let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
         let data = try encoder.encode(self)
         if override, path.exists {
             try path.delete()
         }
         try path.write(data)
+    }
+}
+
+extension WorkspaceSettings {
+    static func path(_ path: Path) -> Path {
+        path + "WorkspaceSettings.xcsettings"
     }
 }

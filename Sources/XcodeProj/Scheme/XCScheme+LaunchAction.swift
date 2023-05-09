@@ -42,6 +42,7 @@ extension XCScheme {
         public var launchStyle: Style
         public var askForAppToLaunch: Bool?
         public var pathRunnable: PathRunnable?
+        public var customWorkingDirectory: String?
         public var useCustomWorkingDirectory: Bool
         public var ignoresPersistentStateOnLaunch: Bool
         public var debugDocumentVersioning: Bool
@@ -57,6 +58,7 @@ extension XCScheme {
         public var enableUBSanitizer: Bool
         public var stopOnEveryUBSanitizerIssue: Bool
         public var disableMainThreadChecker: Bool
+        public var disablePerformanceAntipatternChecker: Bool
         public var stopOnEveryMainThreadCheckerIssue: Bool
         public var additionalOptions: [AdditionalOption]
         public var commandlineArguments: CommandLineArguments?
@@ -81,6 +83,7 @@ extension XCScheme {
                     launchStyle: Style = .auto,
                     askForAppToLaunch: Bool? = nil,
                     pathRunnable: PathRunnable? = nil,
+                    customWorkingDirectory: String? = nil,
                     useCustomWorkingDirectory: Bool = false,
                     ignoresPersistentStateOnLaunch: Bool = false,
                     debugDocumentVersioning: Bool = true,
@@ -96,6 +99,7 @@ extension XCScheme {
                     enableUBSanitizer: Bool = false,
                     stopOnEveryUBSanitizerIssue: Bool = false,
                     disableMainThreadChecker: Bool = false,
+                    disablePerformanceAntipatternChecker: Bool = false,
                     stopOnEveryMainThreadCheckerIssue: Bool = false,
                     additionalOptions: [AdditionalOption] = [],
                     commandlineArguments: CommandLineArguments? = nil,
@@ -114,6 +118,7 @@ extension XCScheme {
             self.selectedLauncherIdentifier = selectedLauncherIdentifier
             self.askForAppToLaunch = askForAppToLaunch
             self.pathRunnable = pathRunnable
+            self.customWorkingDirectory = customWorkingDirectory
             self.useCustomWorkingDirectory = useCustomWorkingDirectory
             self.ignoresPersistentStateOnLaunch = ignoresPersistentStateOnLaunch
             self.debugDocumentVersioning = debugDocumentVersioning
@@ -129,6 +134,7 @@ extension XCScheme {
             self.enableUBSanitizer = enableUBSanitizer
             self.stopOnEveryUBSanitizerIssue = stopOnEveryUBSanitizerIssue
             self.disableMainThreadChecker = disableMainThreadChecker
+            self.disablePerformanceAntipatternChecker = disablePerformanceAntipatternChecker
             self.stopOnEveryMainThreadCheckerIssue = stopOnEveryMainThreadCheckerIssue
             self.additionalOptions = additionalOptions
             self.commandlineArguments = commandlineArguments
@@ -148,7 +154,7 @@ extension XCScheme {
             selectedDebuggerIdentifier = element.attributes["selectedDebuggerIdentifier"] ?? XCScheme.defaultDebugger
             selectedLauncherIdentifier = element.attributes["selectedLauncherIdentifier"] ?? XCScheme.defaultLauncher
             launchStyle = element.attributes["launchStyle"].flatMap { Style(rawValue: $0) } ?? .auto
-            askForAppToLaunch = element.attributes["askForAppToLaunch"].map { $0 == "YES" }
+            askForAppToLaunch = element.attributes["askForAppToLaunch"].map { $0 == "YES" || $0 == "Yes" }
             useCustomWorkingDirectory = element.attributes["useCustomWorkingDirectory"] == "YES"
             ignoresPersistentStateOnLaunch = element.attributes["ignoresPersistentStateOnLaunch"] == "YES"
             debugDocumentVersioning = element.attributes["debugDocumentVersioning"].map { $0 == "YES" } ?? true
@@ -191,6 +197,7 @@ extension XCScheme {
             enableUBSanitizer = element.attributes["enableUBSanitizer"] == "YES"
             stopOnEveryUBSanitizerIssue = element.attributes["stopOnEveryUBSanitizerIssue"] == "YES"
             disableMainThreadChecker = element.attributes["disableMainThreadChecker"] == "YES"
+            disablePerformanceAntipatternChecker = element.attributes["disablePerformanceAntipatternChecker"] == "YES"
             stopOnEveryMainThreadCheckerIssue = element.attributes["stopOnEveryMainThreadCheckerIssue"] == "YES"
 
             additionalOptions = try element["AdditionalOptions"]["AdditionalOption"]
@@ -218,6 +225,9 @@ extension XCScheme {
             }
             customLaunchCommand = element.attributes["customLaunchCommand"]
             customLLDBInitFile = element.attributes["customLLDBInitFile"]
+            if let elementCustomWorkingDirectory: String = element.attributes["customWorkingDirectory"] {
+                customWorkingDirectory = elementCustomWorkingDirectory
+            }
 
             try super.init(element: element)
         }
@@ -267,8 +277,14 @@ extension XCScheme {
             if disableMainThreadChecker {
                 attributes["disableMainThreadChecker"] = disableMainThreadChecker.xmlString
             }
+            if disablePerformanceAntipatternChecker {
+                attributes["disablePerformanceAntipatternChecker"] = disablePerformanceAntipatternChecker.xmlString
+            }
             if stopOnEveryMainThreadCheckerIssue {
                 attributes["stopOnEveryMainThreadCheckerIssue"] = stopOnEveryMainThreadCheckerIssue.xmlString
+            }
+            if let customWorkingDirectory = customWorkingDirectory {
+                attributes["customWorkingDirectory"] = customWorkingDirectory
             }
 
             return attributes
@@ -350,6 +366,7 @@ extension XCScheme {
                 launchStyle == rhs.launchStyle &&
                 askForAppToLaunch == rhs.askForAppToLaunch &&
                 pathRunnable == rhs.pathRunnable &&
+                customWorkingDirectory == rhs.customWorkingDirectory &&
                 useCustomWorkingDirectory == rhs.useCustomWorkingDirectory &&
                 ignoresPersistentStateOnLaunch == rhs.ignoresPersistentStateOnLaunch &&
                 debugDocumentVersioning == rhs.debugDocumentVersioning &&
@@ -365,6 +382,7 @@ extension XCScheme {
                 enableUBSanitizer == rhs.enableUBSanitizer &&
                 stopOnEveryUBSanitizerIssue == rhs.stopOnEveryUBSanitizerIssue &&
                 disableMainThreadChecker == rhs.disableMainThreadChecker &&
+                disablePerformanceAntipatternChecker == rhs.disablePerformanceAntipatternChecker &&
                 stopOnEveryMainThreadCheckerIssue == rhs.stopOnEveryMainThreadCheckerIssue &&
                 additionalOptions == rhs.additionalOptions &&
                 commandlineArguments == rhs.commandlineArguments &&

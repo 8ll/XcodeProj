@@ -13,6 +13,7 @@ let attributesOrder: [String: [String]] = [
     "BuildAction": [
         "parallelizeBuildables",
         "buildImplicitDependencies",
+        "runPostActionsOnFailure",
     ],
     "BuildActionEntry": [
         "buildForTesting",
@@ -32,20 +33,27 @@ let attributesOrder: [String: [String]] = [
         "buildConfiguration",
         "selectedDebuggerIdentifier",
         "selectedLauncherIdentifier",
+        "customLLDBInitFile",
         "language",
+        "shouldUseLaunchSchemeArgsEnv",
+        "disableMainThreadChecker",
         "region",
         "codeCoverageEnabled",
         "onlyGenerateCoverageForSpecifiedTargets",
-        "shouldUseLaunchSchemeArgsEnv",
     ],
     "LaunchAction": [
         "buildConfiguration",
         "selectedDebuggerIdentifier",
         "selectedLauncherIdentifier",
+        "customLLDBInitFile",
+        "disableMainThreadChecker",
+        "disablePerformanceAntipatternChecker",
         "language",
         "region",
         "launchStyle",
+        "askForAppToLaunch",
         "useCustomWorkingDirectory",
+        "customWorkingDirectory",
         "ignoresPersistentStateOnLaunch",
         "debugDocumentVersioning",
         "debugServiceExtension",
@@ -59,6 +67,7 @@ let attributesOrder: [String: [String]] = [
         "shouldUseLaunchSchemeArgsEnv",
         "savedToolIdentifier",
         "useCustomWorkingDirectory",
+        "customWorkingDirectory",
         "ignoresPersistentStateOnLaunch",
         "debugDocumentVersioning",
         "enableTestabilityWhenProfilingTests",
@@ -89,6 +98,16 @@ let attributesOrder: [String: [String]] = [
         "symbolName",
         "moduleName",
     ],
+    "RemoteRunnable": [
+        "runnableDebuggingMode",
+        "BundleIdentifier",
+        "RemotePath"
+    ],
+    "Scheme": [
+        "LastUpgradeVersion",
+        "wasCreatedForAppExtension",
+        "version"
+    ]
 ]
 
 extension AEXMLElement {

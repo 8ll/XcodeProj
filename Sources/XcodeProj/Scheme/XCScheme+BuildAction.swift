@@ -75,6 +75,7 @@ extension XCScheme {
         public var buildActionEntries: [Entry]
         public var parallelizeBuild: Bool
         public var buildImplicitDependencies: Bool
+        public var runPostActionsOnFailure: Bool?
 
         // MARK: - Init
 
@@ -82,16 +83,19 @@ extension XCScheme {
                     preActions: [ExecutionAction] = [],
                     postActions: [ExecutionAction] = [],
                     parallelizeBuild: Bool = false,
-                    buildImplicitDependencies: Bool = false) {
+                    buildImplicitDependencies: Bool = false,
+                    runPostActionsOnFailure: Bool? = nil) {
             self.buildActionEntries = buildActionEntries
             self.parallelizeBuild = parallelizeBuild
             self.buildImplicitDependencies = buildImplicitDependencies
+            self.runPostActionsOnFailure = runPostActionsOnFailure
             super.init(preActions, postActions)
         }
 
         override init(element: AEXMLElement) throws {
             parallelizeBuild = element.attributes["parallelizeBuildables"].map { $0 == "YES" } ?? true
             buildImplicitDependencies = element.attributes["buildImplicitDependencies"].map { $0 == "YES" } ?? true
+            runPostActionsOnFailure = element.attributes["runPostActionsOnFailure"].map { $0 == "YES" }
             buildActionEntries = try element["BuildActionEntries"]["BuildActionEntry"]
                 .all?
                 .map(Entry.init) ?? []
@@ -110,12 +114,18 @@ extension XCScheme {
         // MARK: - XML
 
         func xmlElement() -> AEXMLElement {
+            var attributes = [
+                "parallelizeBuildables": parallelizeBuild.xmlString,
+                "buildImplicitDependencies": buildImplicitDependencies.xmlString,
+            ]
+
+            if let runPostActionsOnFailure = runPostActionsOnFailure {
+                attributes["runPostActionsOnFailure"] = runPostActionsOnFailure.xmlString
+            }
+
             let element = AEXMLElement(name: "BuildAction",
                                        value: nil,
-                                       attributes: [
-                                           "parallelizeBuildables": parallelizeBuild.xmlString,
-                                           "buildImplicitDependencies": buildImplicitDependencies.xmlString,
-                                       ])
+                                       attributes: attributes)
             super.writeXML(parent: element)
             let entries = element.addChild(name: "BuildActionEntries")
             buildActionEntries.forEach { entry in
@@ -131,7 +141,8 @@ extension XCScheme {
             return super.isEqual(to: to) &&
                 buildActionEntries == rhs.buildActionEntries &&
                 parallelizeBuild == rhs.parallelizeBuild &&
-                buildImplicitDependencies == rhs.buildImplicitDependencies
+                buildImplicitDependencies == rhs.buildImplicitDependencies &&
+                runPostActionsOnFailure == rhs.runPostActionsOnFailure
         }
     }
 }

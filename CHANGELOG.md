@@ -1,12 +1,174 @@
 🚀 Check out the guidelines [here](https://tuist.io/docs/contribution/changelog-guidelines/)
 
-## Next
+## 8.10.0
+
+### Added
+
+- Add try-catch to getting started documentation [#745](https://github.com/tuist/XcodeProj/pull/745) by [@AlexKobachiJP](https://github.com/AlexKobachiJP)
+- Add missing Build Settings Provider documentation [#747](https://github.com/tuist/XcodeProj/pull/747) by [@baekteun](https://github.com/baekteun)
+
+### Fixed
+
+- Fix unstable reads for `XCSchemeManagement` [#758](https://github.com/tuist/XcodeProj/pull/758) by [@kwridan](https://github.com/kwridan)
+- Fix typos in `Writable.swift` [#755](https://github.com/tuist/XcodeProj/pull/755) by [@jpsim](https://github.com/jpsim)
+
+### Changed
+
+- Update `XCSharedData` Writable conformance to include `WorkspaceSettings` [#743](https://github.com/tuist/XcodeProj/pull/743) by [@dayton-bobbitt](https://github.com/dayton-bobbitt)
+
+## 8.9.0
+
+### Added
+
+- Update watchOS application default settings for Xcode 14 [#711](https://github.com/tuist/XcodeProj/pull/711) by [@kwridan](https://github.com/kwridan)
+- Implement `Hashable` for `XCScheme.BuildableReference` [#712](https://github.com/tuist/XcodeProj/pull/712) by [@cgrindel](https://github.com/cgrindel)
+- Sets customWorkingDirectory for schemes [#720](https://github.com/tuist/XcodeProj/pull/720) by [@maxwellE](https://github.com/maxwellE)
+- Add `XCScheme.ExecutionAction.shellToInvoke` [#721](https://github.com/tuist/XcodeProj/pull/721) by [@CrazyFanFan](https://github.com/CrazyFanFan)
+- Add `platformFilters` attribute to `PBXBuildFile` and `PBXTargetDependency` [#737](https://github.com/tuist/XcodeProj/pull/737) by [@maxwellE](https://github.com/maxwellE)
+- Add suppot for `XCUserData` [#739](https://github.com/tuist/XcodeProj/pull/739) by [@teameh](https://github.com/teameh)
+
+## 8.8.0
+
+### Fixed
+
+- Fix equality checking of dictionaries [#667](https://github.com/tuist/XcodeProj/pull/667) by [@brentleyjones](https://github.com/brentleyjones)
+- Quiet new warnings from Xcode 13.3 [#673](https://github.com/tuist/XcodeProj/pull/673) by [@hisaac](https://github.com/hisaac)
+- Fix typo in PBXOutputSettings.swift [#678](https://github.com/tuist/XcodeProj/pull/678) by [@eltociear](https://github.com/eltociear)
+- Fix syntax error in docs [#679](https://github.com/tuist/XcodeProj/pull/679) by [@maxwellE](https://github.com/maxwellE)
+- Misspelling in comment [#680](https://github.com/tuist/XcodeProj/pull/680) by [@maxwellE](https://github.com/maxwellE)
+- Misspelling in comment [#681](https://github.com/tuist/XcodeProj/pull/681) by [@maxwellE](https://github.com/maxwellE)
+- Ensure correct `LaunchAction`  scheme order [#686](https://github.com/tuist/XcodeProj/pull/686) by [@maxwellE](https://github.com/maxwellE)
+- Fix TestAction scheme attribute ordering [#689](https://github.com/tuist/XcodeProj/pull/689) by [@maxwellE](https://github.com/maxwellE)
+- Fix `Testables` element ordering [#702](https://github.com/tuist/XcodeProj/pull/702) by [@maxwellE](https://github.com/maxwellE)
+- Fix `RemoteRunnable` scheme attr order [#701](https://github.com/tuist/XcodeProj/pull/701) by [@maxwellE](https://github.com/maxwellE)
+- Fix ordering of Scheme toplevel attrs [#698](https://github.com/tuist/XcodeProj/pull/698) by [@maxwellE](https://github.com/maxwellE)
+- Fix order for `askForAppToLaunch` attr [#705](https://github.com/tuist/XcodeProj/pull/705) by [@maxwellE](https://github.com/maxwellE)
+- Fix ordering of diagnostics scheme options [#704](https://github.com/tuist/XcodeProj/pull/704) by [@kwridan](https://github.com/kwridan)
+
+### Added
+
+- Add `addDependency()` helper method to `PBXAggregateTarget` [#677](https://github.com/tuist/XcodeProj/pull/677) by [@brentleyjones](https://github.com/brentleyjones)
+- Allow for initializing a PBXProj via a direct path [#682](https://github.com/tuist/XcodeProj/pull/682) by [@maxwellE](https://github.com/maxwellE)
+- Add `.extensionKitExtension` as the new `PBXProductType` [#691](https://github.com/tuist/XcodeProj/pull/691) by [@mtj0928](https://github.com/mtj0928)
+- Added `disablePerformanceAntipatternChecker` to `XCScheme` [#693](https://github.com/tuist/XcodeProj/pull/603) by [@Bogdan-Belogurov](https://github.com/Bogdan-Belogurov)
+- Added missing `askForAppToLaunch` in `ProfileAction` [#700](https://github.com/tuist/XcodeProj/pull/700) by [@maxwellE](https://github.com/maxwellE)
+- Add `launchAutomaticallySubstyle`->`ProfileAction` [#699](https://github.com/tuist/XcodeProj/pull/699) by [@maxwellE](https://github.com/maxwellE)
+- Add `DEAD_CODE_STRIPPING` default project setting [#706](https://github.com/tuist/XcodeProj/pull/706) by [@kwridan](https://github.com/kwridan)
+
+### Changed
+
+- Use `Runnable` in `ProfileAction` [#703](https://github.com/tuist/XcodeProj/pull/703) by [@maxwellE](https://github.com/maxwellE)
+
+## 8.7.1
+
+### Changed
+- Make WorkspaceSettings initializer public [#658](https://github.com/tuist/XcodeProj/pull/658) by [@jakeatoms](https://github.com/jakeatoms)
+
+## 8.7.0
+### Added
+
+- Add DocC Xcode File Type (`.docc`) [#660](https://github.com/tuist/XcodeProj/pull/660) by [@Jake-Prickett](https://github.com/Jake-Prickett)
+
+## 8.6.0
+### Added
+
+- Support for location added to test targets (`TestableReference`) [#654](https://github.com/tuist/XcodeProj/pull/654) by [@KrisRJack](https://github.com/KrisRJack)
+
+## 8.5.0
+
+### Added
+
+- Add XCSchemeManagement struct https://github.com/tuist/XcodeProj/pull/565 by @pepibumur.
+
+### Changed
+- Update the last-known and default constants to align with Xcode 13.
+ 
+## 8.4.0
+### Added
+
+- Support customized DerrivedData path in `WorkspaceSettings` [#650](https://github.com/tuist/XcodeProj/pull/650) by [@freddi-kit](https://github.com/freddi-kit).
+  
+### 8.3.1
+### Fixed
+
+- Fix Xcode 13 build [#648](https://github.com/tuist/XcodeProj/pull/648) by [@raptorxcz](https://github.com/raptorxcz)
+
+## 8.3.0 - Mojo
+### Added
+
+- `CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED` to default build setting [#641](https://github.com/tuist/XcodeProj/pull/641) by [@flowbe](https://github.com/flowbe)
+
+### Fixed
+
+- Xcode 13 build issues [#646](https://github.com/tuist/XcodeProj/pull/646) by [@jsorge](https://github.com/jsorge)
+
+## 8.2.0 - Bubbles
+### Added
+
+- Support obtaining the full path of a file element by passing the source root as a string [#624](https://github.com/tuist/XcodeProj/pull/624) by [@ileitch](https://github.com/ileitch).
+  
+### Fixed
+
+- If RemoteRunnable doesn't contains BuildableReference XcodeProj removes xcscheme file [#627](https://github.com/tuist/XcodeProj/pull/627) by [@subdan](https://github.com/subdan).
+
+### Changed
+
+- Updated AEXML to 4.6.1 [#632](https://github.com/tuist/XcodeProj/pull/632) by [@nnsnodnb](https://github.com/nnsnodnb).
+## 8.1.0 - Barcelona
+### Changed
+
+- Improve performance of commented string [#635](https://github.com/tuist/XcodeProj/pull/635) by [@adellibovi](https://github.com/adellibovi)
+
+## 8.0.0 - Amor
+### Fixed
+
+- Adding group set incorrect parent in case of complex path [#614](https://github.com/tuist/XcodeProj/pull/614) by [@avdyushin](https://github.com/avdyushin)
+- **Breaking** Fixed issue where some schemes could not be deserialized because a buildable reference did not contain a blueprint identifier [#612](https://github.com/tuist/XcodeProj/pull/612) by [@daltonclaybrook](https://github.com/daltonclaybrook)
+- Added the `com.apple.product-type.driver-extension` and `com.apple.product-type.system-extension` PBXProductType [#618](https://github.com/tuist/XcodeProj/pull/618) by [@vgorloff](https://github.com/vgorloff).
+
+### Changed
+
+- **Breaking** Make `runPostActionsOnFailure` optional [#619](https://github.com/tuist/XcodeProj/pull/619) by [@kwridan](https://github.com/kwridan)
+
+## 7.23.0 - Bonsai
+### Added
+
+- Allows passing BuildableIdentifier String to BuildableReference initializer [#605](https://github.com/tuist/XcodeProj/pull/605) by [@freddi-kit](https://github.com/freddi-kit)
+
+### Fixed
+
+- Fixed building on Linux [#615](https://github.com/tuist/XcodeProj/pull/615) by [@yonaskolb](https://github.com/yonaskolb)
+
+## 7.22.0 - Ringui Dingui
+
+### Added
+
+- `CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER` to default build setting [#608](https://github.com/tuist/XcodeProj/pull/608) by [@fortmarek](https://github.com/fortmarek)
+
+### Fixed
+
+- Prevent overwriting identical workspace data [#607](https://github.com/tuist/XcodeProj/pull/607) by [@ferologics](https://github.com/ferologics)
+
+## 7.21.0 - Alfredo
+
+### Changed
+
+- Speed up md5 generation [#606](https://github.com/tuist/XcodeProj/pull/606) by [@adellibovi](https://github.com/adellibovi)
+
+## 7.20.0 - Sol
+
+### Added
+
+- Added `runPostActionsOnFailure` to `XCScheme` [#603](https://github.com/tuist/XcodeProj/pull/603) by [@FranzBusch](https://github.com/FranzBusch)
+
+## 7.19.0 - Kreuzberg
 
 ### Fixed
 
 - JSON decoder not properly decoding `defaultConfigurationIsVisible` in some projects [#593](https://github.com/tuist/XcodeProj/pull/593) by [@tjwio](https://github.com/tjwio)
 - JSON decoder not properly decoding `proxyType` in some projects [#596](https://github.com/tuist/XcodeProj/issues/596) by [@tjwio](https://github.com/tjwio)
 - BuildPhaseTests not handling failure cases properly [#597](https://github.com/tuist/XcodeProj/issues/597) by [@tjwio](https://github.com/tjwio)
+- `xcconfig` parser does not support inline comments [#602](https://github.com/tuist/XcodeProj/issues/602) by [@dive](https://github.com/dive)
 
 ## 7.18.0 - Penguin
 
